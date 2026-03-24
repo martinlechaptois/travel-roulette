@@ -1,65 +1,112 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useRef, useCallback } from "react";
+import { AnimatePresence } from "framer-motion";
+import WorldMap, { getCountryCentroidScreen } from "@/components/WorldMap";
+import DartButton from "@/components/DartButton";
+import CountryPopup from "@/components/CountryPopup";
+import RecentPicks, { saveRecentPick } from "@/components/RecentPicks";
+import { getRandomCountry, Country } from "@/lib/countries";
+
+type Phase = "idle" | "flying" | "flashing" | "done";
 
 export default function Home() {
+  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
+  const [phase, setPhase] = useState<Phase>("idle");
+  const [showPopup, setShowPopup] = useState(false);
+  const [dartTarget, setDartTarget] = useState<{ x: number; y: number } | null>(
+    null
+  );
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleThrow = useCallback(() => {
+    setShowPopup(false);
+    const country = getRandomCountry();
+    setSelectedCountry(country);
+
+    const container = mapContainerRef.current;
+    if (container) {
+      const rect = container.getBoundingClientRect();
+      const target = getCountryCentroidScreen(
+        country.lat,
+        country.lng,
+        rect.width,
+        rect.height
+      );
+      setDartTarget(target);
+    }
+
+    setPhase("flying");
+  }, []);
+
+  const handleDartLanded = useCallback(() => {
+    setPhase("flashing");
+    setTimeout(() => {
+      setPhase("done");
+      setShowPopup(true);
+      setSelectedCountry((c) => {
+        if (c) saveRecentPick(c);
+        return c;
+      });
+    }, 1600);
+  }, []);
+
+  const handleClosePopup = useCallback(() => {
+    setShowPopup(false);
+  }, []);
+
+  const handleRecentSelect = useCallback((country: Country) => {
+    setSelectedCountry(country);
+    setShowPopup(true);
+    setPhase("done");
+  }, []);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="relative h-screen overflow-hidden">
+      {/* Map takes full screen */}
+      <div ref={mapContainerRef} className="absolute inset-0">
+        <WorldMap
+          selectedCountry={selectedCountry?.name ?? null}
+          isFlashing={phase === "flashing"}
+          isDartFlying={phase === "flying"}
+          dartTarget={dartTarget}
+          onDartLanded={handleDartLanded}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+      </div>
+
+      {/* Top overlay: title + button */}
+      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 md:px-6 py-3 pointer-events-none">
+        <div>
+          <h1 className="text-xl md:text-4xl font-bold text-neon glow-neon">
+            Travel Roulette
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-gray-400 text-[10px] md:text-xs mt-0.5">
+            Throw a dart. Discover the world.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="pointer-events-auto">
+          <DartButton
+            onThrow={handleThrow}
+            disabled={phase === "flying" || phase === "flashing"}
+          />
         </div>
-      </main>
+      </div>
+
+      {/* Bottom overlay: recent picks */}
+      <div className="absolute bottom-0 left-0 right-0 z-10 px-4 md:px-6 pb-4 pointer-events-none">
+        <div className="pointer-events-auto">
+          <RecentPicks
+            onSelect={handleRecentSelect}
+            currentCode={selectedCountry?.code}
+          />
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {showPopup && selectedCountry && (
+          <CountryPopup country={selectedCountry} onClose={handleClosePopup} />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
