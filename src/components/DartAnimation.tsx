@@ -232,7 +232,7 @@ export default function DartAnimation({
     [targetX, targetY, containerWidth, containerHeight]
   );
 
-  const duration = 3;
+  const duration = 5;
 
   // Use offsetPath for smooth curved motion with auto-rotation
   const motionStyle = useMemo(
