@@ -2,13 +2,13 @@ import { Country } from "./countries";
 
 const templates = [
   (c: Country) =>
-    `🎯 The dart has spoken! I'm heading to ${c.flag} *${c.name}*! Did you know the capital is ${c.capital}? Pack your bags (or just your envy) 😎`,
+    `🚀 Houston, we have a destination! The dart has locked onto ${c.flag} *${c.name}*! Capital: ${c.capital}. One small step for man, one giant leap for my passport. T-minus NOW! 🌍`,
   (c: Country) =>
-    `🌍 Travel Roulette chose *${c.name}* ${c.flag} for me! Capital: ${c.capital}. Population: ${c.population}. Fun fact: ${c.funFact} See you never! ✈️`,
+    `🛸 Mission Control here — Travel Roulette has selected ${c.flag} *${c.name}* for orbital insertion! Population: ${c.population}. Fun fact: ${c.funFact} This is one mission I won't abort! 🧑‍🚀`,
   (c: Country) =>
-    `🎲 Plot twist: my next destination is ${c.flag} *${c.name}*! Located in ${c.region}, with ${c.capital} as its capital. Who's jealous? 🧳`,
+    `🌕 "That's one small throw, one giant trip!" The dart has landed in ${c.flag} *${c.name}*, ${c.region}! Capital: ${c.capital}. Commencing launch sequence... godspeed, travelers! 🚀`,
   (c: Country) =>
-    `✈️ Breaking news: Travel Roulette just sent me to ${c.flag} *${c.name}*! ${c.funFact} — Can't wait to see ${c.capital}! 🗺️`,
+    `📡 BREAKING from Mission Control: trajectory locked on ${c.flag} *${c.name}*! ${c.funFact} — Failure is not an option. See you in ${c.capital}! Ad astra! ✨`,
 ];
 
 export function generateSlackMessage(country: Country): string {

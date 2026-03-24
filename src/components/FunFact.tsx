@@ -15,7 +15,7 @@ export default function FunFact({ fact }: FunFactProps) {
       transition={{ delay: 0.2, duration: 0.4 }}
     >
       <div className="text-neon text-sm font-bold uppercase tracking-wider">
-        💡 Did you know?
+        🚀 Mission Briefing
       </div>
       <p className="text-gray-300 text-sm mt-2 leading-relaxed">{fact}</p>
     </motion.div>
